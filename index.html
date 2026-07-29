@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 9001 程度評估</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --navy:#16233F;
+  --steel:#3D5A80;
+  --paper:#F3F0E7;
+  --paper-dim:#E7E2D3;
+  --brass:#B8912F;
+  --brass-light:#D9B75C;
+  --pass:#3F6B4F;
+  --fail:#A5433C;
+  --ink:#1C1C1C;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(184,145,47,0.08), transparent 40%),
+    var(--paper);
+  background-image:
+    linear-gradient(rgba(22,35,63,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,35,63,0.035) 1px, transparent 1px),
+    radial-gradient(circle at 15% 10%, rgba(184,145,47,0.08), transparent 40%);
+  background-size: 24px 24px, 24px 24px, cover;
+  font-family:'IBM Plex Sans TC', sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:32px 16px 80px;
+}
+
+.sheet{
+  width:100%;
+  max-width:680px;
+}
+
+.letterhead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  border-bottom:2px solid var(--navy);
+  padding-bottom:14px;
+  margin-bottom:22px;
+}
+.letterhead .mark{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:0.12em;
+  color:var(--steel);
+}
+.letterhead h1{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+  margin:2px 0 0;
+  letter-spacing:0.01em;
+}
+.letterhead .sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--brass);
+  text-align:right;
+  line-height:1.6;
+}
+
+/* checklist progress */
+.checklist{
+  display:flex;
+  gap:6px;
+  margin-bottom:26px;
+}
+.checkbox{
+  flex:1;
+  height:10px;
+  border:1.5px solid var(--navy);
+  background:transparent;
+  position:relative;
+  overflow:hidden;
+}
+.checkbox.done{background:var(--navy);}
+.checkbox.correct{background:var(--pass); border-color:var(--pass);}
+.checkbox.wrong{background:var(--fail); border-color:var(--fail);}
+
+.card{
+  background:var(--paper);
+  border:1.5px solid var(--navy);
+  padding:28px 26px;
+  position:relative;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  top:8px; left:8px; right:8px; bottom:8px;
+  border:1px solid rgba(22,35,63,0.18);
+  pointer-events:none;
+}
+
+.clause{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--brass);
+  letter-spacing:0.08em;
+  margin-bottom:10px;
+}
+
+.question{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:19px;
+  font-weight:600;
+  color:var(--navy);
+  line-height:1.5;
+  margin:0 0 22px;
+}
+
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.option{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  text-align:left;
+  padding:13px 14px;
+  border:1.5px solid var(--steel);
+  background:rgba(255,255,255,0.4);
+  font-family:'IBM Plex Sans TC', sans-serif;
+  font-size:14.5px;
+  color:var(--ink);
+  cursor:pointer;
+  transition:background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.option:hover:not(:disabled){
+  background:rgba(61,90,128,0.08);
+  transform:translateX(2px);
+}
+.option:disabled{cursor:default;}
+.option .tag{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600;
+  color:var(--steel);
+  flex-shrink:0;
+}
+.option.correct{
+  border-color:var(--pass);
+  background:rgba(63,107,79,0.14);
+}
+.option.correct .tag{color:var(--pass);}
+.option.wrong{
+  border-color:var(--fail);
+  background:rgba(165,67,60,0.12);
+}
+.option.wrong .tag{color:var(--fail);}
+
+.feedback{
+  margin-top:18px;
+  padding:14px 16px;
+  border-left:3px solid var(--brass);
+  background:rgba(184,145,47,0.08);
+  font-size:13.5px;
+  line-height:1.7;
+  display:none;
+}
+.feedback.show{display:block;}
+.feedback .verdict{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:700;
+  font-size:14px;
+  margin-bottom:4px;
+}
+.feedback.is-correct .verdict{color:var(--pass);}
+.feedback.is-wrong .verdict{color:var(--fail);}
+
+.footer-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:24px;
+}
+.counter{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--steel);
+}
+.next-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:var(--navy);
+  color:var(--paper);
+  border:none;
+  padding:11px 24px;
+  cursor:pointer;
+  letter-spacing:0.02em;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s ease;
+}
+.next-btn.show{opacity:1; pointer-events:auto;}
+.next-btn:hover{background:var(--steel);}
+
+/* result / stamp screen */
+.result-card{
+  background:var(--paper);
+  border:1.5px solid var(--navy);
+  padding:40px 28px;
+  text-align:center;
+  position:relative;
+}
+.result-card::before{
+  content:"";
+  position:absolute;
+  top:8px; left:8px; right:8px; bottom:8px;
+  border:1px solid rgba(22,35,63,0.18);
+  pointer-events:none;
+}
+.stamp{
+  width:150px;
+  height:150px;
+  margin:0 auto 22px;
+  border-radius:50%;
+  border:4px solid var(--brass);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  transform:rotate(-8deg) scale(0);
+  animation:stamp-in 0.5s cubic-bezier(.2,1.5,.4,1) 0.15s forwards;
+}
+.stamp::before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  border:1.5px dashed var(--brass);
+}
+@keyframes stamp-in{
+  to{transform:rotate(-8deg) scale(1);}
+}
+.stamp .grade{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:34px;
+  font-weight:700;
+  color:var(--brass);
+  line-height:1;
+}
+.stamp .grade-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:9px;
+  letter-spacing:0.1em;
+  color:var(--brass);
+  margin-top:6px;
+}
+.result-title{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+  margin:0 0 8px;
+}
+.result-sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  color:var(--steel);
+  margin-bottom:24px;
+}
+.score-breakdown{
+  display:flex;
+  justify-content:center;
+  gap:26px;
+  margin-bottom:28px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  color:var(--ink);
+}
+.score-breakdown .num{
+  display:block;
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--navy);
+}
+.restart-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:transparent;
+  color:var(--navy);
+  border:1.5px solid var(--navy);
+  padding:11px 24px;
+  cursor:pointer;
+}
+.restart-btn:hover{background:var(--navy); color:var(--paper);}
+
+.result-actions{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.contact-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  background:var(--brass);
+  color:var(--navy);
+  border:1.5px solid var(--brass);
+  padding:11px 24px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+.contact-btn:hover{background:var(--brass-light); border-color:var(--brass-light);}
+
+@media (max-width:480px){
+  .card, .result-card{padding:22px 18px;}
+  .question{font-size:17px;}
+  .letterhead{flex-direction:column; align-items:flex-start; gap:6px;}
+  .letterhead .sub{text-align:left;}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="letterhead">
+    <div>
+      <div class="mark">QMS · TRAINING RECORD</div>
+      <h1>ISO 9001 程度評估</h1>
+    </div>
+    <div class="sub">表單編號 QF-09.1<br>版次 Rev.03</div>
+  </div>
+
+  <div class="checklist" id="checklist"></div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none;"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    clause: "標準本質 · 定位",
+    q: "ISO 9001 標準本質上規範的是什麼？",
+    options: [
+      "產品本身的技術規格",
+      "品質管理系統的要求",
+      "環境管理系統的要求",
+      "職業安全衛生管理要求"
+    ],
+    answer: 1,
+    explain: "ISO 9001規範的是「品質管理系統」的要求，用以證明組織有能力穩定提供符合顧客與法規要求的產品或服務，並非規範產品本身的技術規格。"
+  },
+  {
+    clause: "條款 4.1 · 組織背景",
+    q: "條款4.1要求組織應鑑別哪些議題，以了解其「組織背景」？",
+    options: [
+      "只需考慮財務報表數字",
+      "會影響QMS達成預期結果能力的內部及外部議題",
+      "僅限產業競爭對手分析",
+      "只需考慮員工人數多寡"
+    ],
+    answer: 1,
+    explain: "條款4.1要求組織鑑別與其目的及策略方向相關、且會影響QMS達成預期結果能力的內部與外部議題。"
+  },
+  {
+    clause: "條款 4.2 · 利害關係人",
+    q: "條款4.2規定組織應了解哪些對象的需求與期望？",
+    options: [
+      "僅限公司股東",
+      "與QMS相關的利害關係人（如顧客、法規機關、供應商等）",
+      "僅限政府主管機關",
+      "僅限公司內部員工"
+    ],
+    answer: 1,
+    explain: "條款4.2要求組織鑑別與QMS相關的利害關係人，並了解其攸關要求，作為規劃QMS範圍的依據之一。"
+  },
+  {
+    clause: "條款 7.1.6 · 組織知識",
+    q: "條款7.1.6「組織知識」主要在規範什麼？",
+    options: [
+      "組織應維持並提供必要之知識，以確保過程運作及產品服務符合性",
+      "員工必須通過知識測驗才能任職",
+      "僅限研發部門建立知識庫",
+      "與品質管理系統無直接關聯"
+    ],
+    answer: 0,
+    explain: "組織知識條款要求組織決定並維護運作過程所需的知識，並在人員異動、技術更迭時妥善因應知識流失的風險。"
+  },
+  {
+    clause: "條款 7.2 · 能力",
+    q: "條款7.2「能力」（Competence）主要要求為何？",
+    options: [
+      "所有員工都必須取得國際證照",
+      "組織須決定人員所需能力，並確保其具備適當教育、訓練或經驗",
+      "此條款僅適用於管理階層",
+      "每年須依績效汰弱留強"
+    ],
+    answer: 1,
+    explain: "條款7.2要求組織確保影響QMS績效與有效性之人員具備必要能力，並保存教育、訓練、技能或經驗等相關證據。"
+  },
+  {
+    clause: "條款 7.3 · 認知",
+    q: "條款7.3「認知」（Awareness）要求員工應了解哪些事項？",
+    options: [
+      "公司整體財務狀況",
+      "品質政策、攸關的品質目標，以及自身工作對QMS有效性的貢獻",
+      "競爭對手的產品資訊",
+      "股票市場行情變化"
+    ],
+    answer: 1,
+    explain: "條款7.3要求受組織管制的人員知悉品質政策、與其相關的品質目標，以及不符合QMS要求可能帶來的後果。"
+  },
+  {
+    clause: "條款 7.4 · 溝通",
+    q: "條款7.4「溝通」要求組織須決定的內容，不包含下列何者？",
+    options: [
+      "溝通什麼、何時溝通",
+      "與誰溝通、如何溝通",
+      "由誰負責溝通",
+      "員工的薪資調整方案"
+    ],
+    answer: 3,
+    explain: "條款7.4要求組織決定內部與外部溝通的內容、時機、對象、方式與負責人，與薪資調整方案無關。"
+  },
+  {
+    clause: "條款 8.3 · 設計與開發",
+    q: "條款8.3「設計與開發」的主要精神為何？",
+    options: [
+      "此條款只適用於製造業",
+      "建立管制流程，確保產品與服務的設計開發符合後續實現要求",
+      "設計一旦完成即不需再審查",
+      "設計內容完全由顧客全權決定"
+    ],
+    answer: 1,
+    explain: "條款8.3要求組織針對設計開發建立、實施並維持流程，涵蓋規劃、輸入、管制、輸出與變更管理等階段。"
+  },
+  {
+    clause: "條款 9.1.2 · 顧客滿意度",
+    q: "條款9.1.2「顧客滿意度」要求組織應如何做？",
+    options: [
+      "監控顧客對其需求與期望被滿足程度的感受，並決定監控方法",
+      "顧客滿意度調查為選擇性項目，可自由決定是否執行",
+      "只需統計退貨率即可代表顧客滿意度",
+      "顧客滿意度僅供業務部門參考，無須留存紀錄"
+    ],
+    answer: 0,
+    explain: "條款9.1.2要求組織監控顧客對其需求與期望獲得滿足之感受，並將其作為QMS績效衡量的重要依據之一。"
+  },
+  {
+    clause: "驗證管理 · 證書效期",
+    q: "一般而言，通過ISO 9001驗證後，證書的有效期與後續管理方式為何？",
+    options: [
+      "證書永久有效，取得後無需再稽核",
+      "證書效期通常為3年，期間須每年接受監督稽核",
+      "證書效期為1年，須每月重新申請",
+      "證書效期由組織自行決定"
+    ],
+    answer: 1,
+    explain: "一般驗證機構核發的證書有效期約為3年，期間組織須接受每年一次的監督稽核，效期屆滿前則須辦理重新驗證。"
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+const results = [];
+
+const checklistEl = document.getElementById('checklist');
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+
+function renderChecklist(){
+  checklistEl.innerHTML = questions.map((_, i) => {
+    let cls = 'checkbox';
+    if (results[i] === true) cls += ' correct';
+    else if (results[i] === false) cls += ' wrong';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = questions[current];
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="clause">${item.clause}</div>
+      <p class="question">${item.q}</p>
+      <div class="options" id="optionsWrap">
+        ${item.options.map((opt, i) => `
+          <button class="option" data-idx="${i}">
+            <span class="tag">${String.fromCharCode(65+i)}</span>
+            <span>${opt}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="feedback" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div id="explainText"></div>
+      </div>
+      <div class="footer-row">
+        <div class="counter">題目 ${current+1} / ${questions.length}</div>
+        <button class="next-btn" id="nextBtn">${current === questions.length - 1 ? '查看稽核結果' : '下一題'}</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.option').forEach(btn => {
+    btn.addEventListener('click', () => selectOption(btn, item));
+  });
+  document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+  renderChecklist();
+}
+
+function selectOption(btn, item){
+  if (answered) return;
+  answered = true;
+  const idx = parseInt(btn.dataset.idx);
+  const isCorrect = idx === item.answer;
+  results[current] = isCorrect;
+  if (isCorrect) score++;
+
+  document.querySelectorAll('.option').forEach(b => {
+    b.disabled = true;
+    const bIdx = parseInt(b.dataset.idx);
+    if (bIdx === item.answer) b.classList.add('correct');
+    else if (bIdx === idx) b.classList.add('wrong');
+  });
+
+  const feedback = document.getElementById('feedback');
+  const verdict = document.getElementById('verdict');
+  const explain = document.getElementById('explainText');
+  feedback.classList.add('show');
+  feedback.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+  verdict.textContent = isCorrect ? '✓ 符合要求' : '✕ 不符合要求';
+  explain.textContent = item.explain;
+
+  document.getElementById('nextBtn').classList.add('show');
+  renderChecklist();
+}
+
+function nextQuestion(){
+  if (current < questions.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  quizArea.style.display = 'none';
+  resultArea.style.display = 'block';
+
+  const pct = Math.round((score / questions.length) * 100);
+  let grade, gradeLabel, title, sub;
+
+  if (pct >= 90){
+    grade = 'A'; gradeLabel = '優異合格';
+    title = '稽核通過：無不符合事項';
+    sub = 'ISSUED · 品質觀念紮實，已具備稽核員思維';
+  } else if (pct >= 70){
+    grade = 'B'; gradeLabel = '合格通過';
+    title = '稽核通過：輕微觀察事項';
+    sub = 'PASSED · 基本觀念正確，建議複習加深印象';
+  } else {
+    grade = 'C'; gradeLabel = '待改善';
+    title = '未通過：建議重新研讀教材';
+    sub = 'NOT YET · 請重新複習課程重點後再次測驗';
+  }
+
+  resultArea.innerHTML = `
+    <div class="result-card">
+      <div class="stamp">
+        <div class="grade">${grade}</div>
+        <div class="grade-label">${gradeLabel}</div>
+      </div>
+      <h2 class="result-title">${title}</h2>
+      <div class="result-sub">${sub}</div>
+      <div class="score-breakdown">
+        <div><span class="num">${score}</span>答對題數</div>
+        <div><span class="num">${questions.length - score}</span>答錯題數</div>
+        <div><span class="num">${pct}%</span>正確率</div>
+      </div>
+      <div class="result-actions">
+        <button class="restart-btn" id="restartBtn">重新測驗</button>
+        <a class="contact-btn" id="contactBtn" href="https://dchuang1123.github.io/CONSULTANT" target="_blank" rel="noopener">深入了解 · 聯絡黃老師</a>
+      </div>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', restart);
+}
+
+function restart(){
+  current = 0;
+  score = 0;
+  results.length = 0;
+  quizArea.style.display = 'block';
+  resultArea.style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
